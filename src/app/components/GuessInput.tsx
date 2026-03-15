@@ -127,7 +127,7 @@ export function GuessInput({
                 </label>
                 <div className="relative">
                   <input
-                    ref={(el) => (inputRefs.current[index] = el)}
+                    ref={(el) => void (inputRefs.current[index] = el)}
                     id={`guess-${index}`}
                     type="text"
                     value={guess}
