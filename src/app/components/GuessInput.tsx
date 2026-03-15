@@ -72,9 +72,10 @@ export function GuessInput({
   const nextButtonRef = useRef<HTMLButtonElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Focus the Next Card button when answer is revealed
+  // Focus the Next Card button when answer is revealed (desktop only)
   useEffect(() => {
-    if (revealed && nextButtonRef.current) {
+    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    if (revealed && nextButtonRef.current && !isTouchDevice) {
       nextButtonRef.current.focus();
     }
   }, [revealed]);
@@ -231,6 +232,10 @@ export function GuessInput({
             <button
               ref={nextButtonRef}
               onClick={() => {
+                // Blur before unmounting to prevent Chrome redistributing focus to the first input
+                if (document.activeElement instanceof HTMLElement) {
+                  document.activeElement.blur();
+                }
                 onNext();
                 if (window.innerWidth < 768 && currentCardIndex < 9) {
                   setTimeout(() => {
