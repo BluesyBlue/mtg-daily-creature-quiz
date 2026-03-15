@@ -493,7 +493,7 @@ export default function App() {
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-yellow-500/20 via-transparent to-transparent"></div>
           <div className="absolute inset-0 opacity-10 bg-[repeating-linear-gradient(45deg,transparent,transparent_2px,rgba(0,0,0,.3)_2px,rgba(0,0,0,.3)_4px)]\"></div>
           <div className="max-w-6xl mx-auto px-8 relative z-10 pt-3 pb-6 md:pt-4 md:pb-8">
-            <h1 className="text-3xl md:text-[4.48rem] font-bold text-white text-center drop-shadow-lg leading-tight" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.5)', fontFamily: "'Cinzel', serif" }}>
+            <h1 className="font-cinzel text-3xl md:text-[4.48rem] font-bold text-white text-center drop-shadow-lg leading-tight" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}>
               Daily Creature Quiz
             </h1>
           </div>
