@@ -210,7 +210,10 @@ export function GuessInput({
                 onSubmit();
                 if (window.innerWidth < 768) {
                   setTimeout(() => {
-                    containerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    if (containerRef.current) {
+                      const y = containerRef.current.getBoundingClientRect().top + window.scrollY;
+                      window.scrollTo({ top: y, behavior: 'smooth' });
+                    }
                   }, 80);
                 }
               }}
