@@ -82,9 +82,10 @@ export function GuessInput({
   // Refs for input fields
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  // Focus the first input field when a new card is presented (desktop only — on mobile the keyboard blocks the fields)
+  // Focus the first input field when a new card is presented (desktop only — on touch devices the keyboard blocks the fields)
   useEffect(() => {
-    if (!revealed && inputRefs.current[0] && window.innerWidth >= 768) {
+    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    if (!revealed && inputRefs.current[0] && !isTouchDevice) {
       inputRefs.current[0].focus();
     }
   }, [currentCardIndex, revealed]);

@@ -79,6 +79,10 @@ export default function App() {
     fetchCards();
   }, []);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   const fetchCards = async () => {
     try {
       setLoading(true);
