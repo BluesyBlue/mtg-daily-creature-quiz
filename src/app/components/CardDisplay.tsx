@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { ImageWithFallback } from '@/app/components/figma/ImageWithFallback';
+import { ImageWithFallback } from '@/app/components/shared/ImageWithFallback';
 
 interface Card {
   id: string;
