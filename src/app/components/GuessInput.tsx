@@ -71,33 +71,41 @@ export function GuessInput({
 
   const nextButtonRef = useRef<HTMLButtonElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  // Focus the Next Card button when answer is revealed (desktop only)
+  // On touch devices, track a window after each card transition during which
+  // any browser-initiated auto-focus on inputs should be immediately cancelled.
+  // User-tap-initiated focus happens outside this window and works normally.
+  const isTouchDevice = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+  const justTransitioned = useRef(isTouchDevice); // true on initial load for touch devices
+
+  const setTransitioned = () => {
+    if (!isTouchDevice) return;
+    justTransitioned.current = true;
+    setTimeout(() => { justTransitioned.current = false; }, 600);
+  };
+
+  // Reset justTransitioned flag on mount (handles initial page load)
   useEffect(() => {
-    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    if (isTouchDevice) {
+      const timer = setTimeout(() => { justTransitioned.current = false; }, 600);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  // Focus Next Card button on reveal (desktop only)
+  useEffect(() => {
     if (revealed && nextButtonRef.current && !isTouchDevice) {
       nextButtonRef.current.focus();
     }
   }, [revealed]);
 
-  // Refs for input fields
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
-
-  // Focus the first input field when a new card is presented (desktop only — on touch devices the keyboard blocks the fields)
+  // Focus first input on new card (desktop only)
   useEffect(() => {
-    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    if (isTouchDevice) {
-      // Actively undo any auto-focus Chrome may have applied at browser-level (after paint)
-      setTimeout(() => {
-        if (document.activeElement instanceof HTMLElement && document.activeElement !== document.body) {
-          document.activeElement.blur();
-        }
-      }, 0);
-      return;
-    }
-    if (!revealed && inputRefs.current[0]) {
+    if (!revealed && inputRefs.current[0] && !isTouchDevice) {
       inputRefs.current[0].focus();
     }
+    if (isTouchDevice) setTransitioned();
   }, [currentCardIndex, revealed]);
 
   return (
@@ -143,6 +151,12 @@ export function GuessInput({
                     id={`guess-${index}`}
                     type="text"
                     value={guess}
+                    onFocus={(e) => {
+                      // Block browser-initiated auto-focus on touch devices during transition window
+                      if (justTransitioned.current) {
+                        e.currentTarget.blur();
+                      }
+                    }}
                     onChange={(e) => setGuesses([...guesses.slice(0, index), e.target.value, ...guesses.slice(index + 1)])}
                     onKeyPress={(e) => {
                       if (e.key === 'Enter' && !revealed) {
@@ -219,6 +233,7 @@ export function GuessInput({
             <button
               onClick={() => {
                 onSubmit();
+                setTransitioned();
                 if (window.innerWidth < 768) {
                   setTimeout(() => {
                     if (containerRef.current) {
@@ -245,6 +260,7 @@ export function GuessInput({
                 if (document.activeElement instanceof HTMLElement) {
                   document.activeElement.blur();
                 }
+                setTransitioned();
                 onNext();
                 if (window.innerWidth < 768 && currentCardIndex < 9) {
                   setTimeout(() => {
