@@ -170,6 +170,7 @@ export default function App() {
     } else {
       setResultBgIndex(Math.floor(Math.random() * RESULT_BACKGROUNDS.length));
       setGameComplete(true);
+      window.scrollTo({ top: 0, behavior: 'instant' });
     }
   };
 
@@ -200,7 +201,7 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="size-full flex items-center justify-center bg-black relative overflow-hidden">
+      <div className="min-h-dvh w-full flex items-center justify-center bg-black relative overflow-hidden">
         <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-3/4 w-[800px] h-[800px] bg-white/15 rounded-full blur-3xl"></div>
         <div className="text-center relative z-10">
           <img 
@@ -216,7 +217,7 @@ export default function App() {
 
   if (error) {
     return (
-      <div className="size-full flex items-center justify-center bg-black relative overflow-hidden">
+      <div className="min-h-dvh w-full flex items-center justify-center bg-black relative overflow-hidden">
         <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-3/4 w-[800px] h-[800px] bg-white/15 rounded-full blur-3xl"></div>
         <div className="text-center bg-slate-800 p-8 rounded-lg shadow-2xl max-w-md relative z-10">
           <h1 className="text-2xl font-bold text-red-400 mb-4">Error Loading Cards</h1>
@@ -239,7 +240,7 @@ export default function App() {
     }, 0);
 
     return (
-      <div className="size-full relative overflow-y-auto">
+      <div className="min-h-dvh w-full relative overflow-y-auto">
         {/* Fixed background image - always fills the screen */}
         <div 
           className="fixed inset-0 -z-10"
@@ -306,7 +307,7 @@ export default function App() {
         <AnimatePresence>
           {!showArtOnly && (
             <motion.div
-              className="relative z-10 min-h-full flex flex-col items-center py-8 px-4"
+              className="relative z-10 min-h-dvh flex flex-col items-center py-8 px-4"
               initial={{ opacity: 0, scale: 0.97, filter: 'blur(6px)' }}
               animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
               exit={{ opacity: 0, scale: 0.97, filter: 'blur(6px)' }}
@@ -368,7 +369,26 @@ export default function App() {
                   </div>
                 </div>
               </div>
-              
+
+              {/* Ko-fi support button */}
+              <div className="flex justify-center my-6">
+                <a
+                  href="https://ko-fi.com/bluesyblue"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2.5 px-6 py-3 rounded-full font-bold text-lg shadow-xl transition-transform hover:scale-105 active:scale-95"
+                  style={{ backgroundColor: '#fcbf47', color: '#323842' }}
+                >
+                  <img
+                    src="https://storage.ko-fi.com/cdn/logomarkLogo.png"
+                    alt="Ko-fi"
+                    className="w-6 h-6 object-contain"
+                  />
+                  Buy Me a Support Booster
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
+                </a>
+              </div>
+
               {/* Summary Section */}
               <div className="max-w-6xl w-full bg-gradient-to-b from-amber-50 via-yellow-50 to-amber-100 p-8 rounded-lg shadow-2xl border-4 border-yellow-700 relative" style={{
                 boxShadow: '0 0 0 2px #78350f, 0 0 0 6px #b45309, 0 0 0 8px #78350f, 0 20px 60px rgba(0,0,0,0.8)',
@@ -384,7 +404,7 @@ export default function App() {
                 <div className="absolute -bottom-2 -right-2 w-8 h-8 border-b-4 border-r-4 border-yellow-500 rounded-br-lg"></div>
                 
                 <div className="relative z-10">
-                  <h2 className="text-3xl font-bold text-amber-950 mb-6 text-center" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.1)' }}>
+                  <h2 className="text-4xl font-bold text-amber-950 mb-6 text-center" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.1)' }}>
                     Record of Your Knowledge
                   </h2>
                   
@@ -402,14 +422,14 @@ export default function App() {
                               className="w-full sm:w-48 h-auto rounded border-2 border-yellow-700 flex-shrink-0"
                             />
                             <div className="flex-1 min-w-0 w-full">
-                              <h3 className="font-bold text-amber-950 text-lg mb-1">{cardScore.card.name}</h3>
-                              <div className="text-sm text-amber-800 mb-3">
+                              <h3 className="font-bold text-amber-950 text-2xl mb-2">{cardScore.card.name}</h3>
+                              <div className="text-lg text-amber-800 mb-4">
                                 Points: <span className="font-bold">{cardScore.points} / {actualTypes.length}</span>
                               </div>
                               
                               <div className="space-y-3">
                                 <div>
-                                  <p className="text-xs font-semibold text-amber-900 mb-1">Your Guesses:</p>
+                                  <p className="text-lg font-semibold text-amber-900 mb-2">Your Guesses:</p>
                                   <div className="flex flex-wrap gap-1">
                                     {cardScore.guesses.length > 0 ? (
                                       cardScore.guesses.map((guess, i) => {
@@ -417,7 +437,7 @@ export default function App() {
                                         return (
                                           <span
                                             key={i}
-                                            className={`px-2 py-1 rounded-lg font-semibold text-xs border-2 ${
+                                            className={`px-3 py-1.5 rounded-lg font-semibold text-base border-2 ${
                                               isCorrect
                                                 ? 'bg-green-600 text-white border-green-400'
                                                 : 'bg-red-600 text-white border-red-400'
@@ -428,18 +448,18 @@ export default function App() {
                                         );
                                       })
                                     ) : (
-                                      <span className="text-amber-700 italic text-xs">No guesses</span>
+                                      <span className="text-amber-700 italic text-base">No guesses</span>
                                     )}
                                   </div>
                                 </div>
                                 
                                 <div>
-                                  <p className="text-xs font-semibold text-amber-900 mb-1">Correct Answer:</p>
+                                  <p className="text-lg font-semibold text-amber-900 mb-2">Correct Answer:</p>
                                   <div className="flex flex-wrap gap-1">
                                     {actualTypes.map((type, i) => (
                                       <span
                                         key={i}
-                                        className="bg-amber-950 text-yellow-100 px-2 py-1 rounded-lg font-semibold text-xs border-2 border-yellow-600"
+                                        className="bg-amber-950 text-yellow-100 px-3 py-1.5 rounded-lg font-semibold text-base border-2 border-yellow-600"
                                       >
                                         {type}
                                       </span>
@@ -465,22 +485,22 @@ export default function App() {
   const currentCard = cards[currentCardIndex];
 
   return (
-    <div className="size-full bg-black relative overflow-hidden">
+    <div className="min-h-dvh w-full bg-black relative overflow-hidden">
       <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-[800px] h-[800px] bg-white/15 rounded-full blur-3xl pointer-events-none"></div>
-      <div className="size-full flex flex-col relative z-10 overflow-auto">
+      <div className="min-h-dvh flex flex-col relative z-10">
         {/* Header - Full Width Panel */}
         <div className="w-full bg-gradient-to-b from-yellow-600 via-yellow-700 to-yellow-800 shadow-2xl relative flex-shrink-0">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-yellow-500/20 via-transparent to-transparent"></div>
           <div className="absolute inset-0 opacity-10 bg-[repeating-linear-gradient(45deg,transparent,transparent_2px,rgba(0,0,0,.3)_2px,rgba(0,0,0,.3)_4px)]\"></div>
-          <div className="max-w-6xl mx-auto px-8 relative z-10 pt-2 pb-3 md:pt-4 md:pb-8">
-            <h1 className="text-3xl md:text-[4.48rem] font-bold text-white text-center drop-shadow-lg leading-tight" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}>
+          <div className="max-w-6xl mx-auto px-8 relative z-10 pt-3 pb-6 md:pt-4 md:pb-8">
+            <h1 className="text-3xl md:text-[4.48rem] font-bold text-white text-center drop-shadow-lg leading-tight" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.5)', fontFamily: "'Cinzel', serif" }}>
               Daily Creature Quiz
             </h1>
           </div>
           {/* Wavy bottom border */}
           <svg className="absolute bottom-0 left-0 w-full h-4" preserveAspectRatio="none" viewBox="0 0 1200 12" xmlns="http://www.w3.org/2000/svg">
-            <path d="M0,6 Q15,0 30,6 T60,6 T90,6 T120,6 T150,6 T180,6 T210,6 T240,6 T270,6 T300,6 T330,6 T360,6 T390,6 T420,6 T450,6 T480,6 T510,6 T540,6 T570,6 T600,6 T630,6 T660,6 T690,6 T720,6 T750,6 T780,6 T810,6 T840,6 T870,6 T900,6 T930,6 T960,6 T990,6 T1020,6 T1050,6 T1080,6 T1110,6 T1140,6 T1170,6 T1200,6 L1200,12 L0,12 Z" fill="#000000" />
-            <path d="M0,6 Q15,0 30,6 T60,6 T90,6 T120,6 T150,6 T180,6 T210,6 T240,6 T270,6 T300,6 T330,6 T360,6 T390,6 T420,6 T450,6 T480,6 T510,6 T540,6 T570,6 T600,6 T630,6 T660,6 T690,6 T720,6 T750,6 T780,6 T810,6 T840,6 T870,6 T900,6 T930,6 T960,6 T990,6 T1020,6 T1050,6 T1080,6 T1110,6 T1140,6 T1170,6 T1200,6" stroke="#000000" strokeWidth="1" fill="none" />
+            <path d="M0,6 Q5,2 10,6 T20,6 T30,6 T40,6 T50,6 T60,6 T70,6 T80,6 T90,6 T100,6 T110,6 T120,6 T130,6 T140,6 T150,6 T160,6 T170,6 T180,6 T190,6 T200,6 T210,6 T220,6 T230,6 T240,6 T250,6 T260,6 T270,6 T280,6 T290,6 T300,6 T310,6 T320,6 T330,6 T340,6 T350,6 T360,6 T370,6 T380,6 T390,6 T400,6 T410,6 T420,6 T430,6 T440,6 T450,6 T460,6 T470,6 T480,6 T490,6 T500,6 T510,6 T520,6 T530,6 T540,6 T550,6 T560,6 T570,6 T580,6 T590,6 T600,6 T610,6 T620,6 T630,6 T640,6 T650,6 T660,6 T670,6 T680,6 T690,6 T700,6 T710,6 T720,6 T730,6 T740,6 T750,6 T760,6 T770,6 T780,6 T790,6 T800,6 T810,6 T820,6 T830,6 T840,6 T850,6 T860,6 T870,6 T880,6 T890,6 T900,6 T910,6 T920,6 T930,6 T940,6 T950,6 T960,6 T970,6 T980,6 T990,6 T1000,6 T1010,6 T1020,6 T1030,6 T1040,6 T1050,6 T1060,6 T1070,6 T1080,6 T1090,6 T1100,6 T1110,6 T1120,6 T1130,6 T1140,6 T1150,6 T1160,6 T1170,6 T1180,6 T1190,6 T1200,6 L1200,12 L0,12 Z" fill="#000000" />
+            <path d="M0,6 Q5,2 10,6 T20,6 T30,6 T40,6 T50,6 T60,6 T70,6 T80,6 T90,6 T100,6 T110,6 T120,6 T130,6 T140,6 T150,6 T160,6 T170,6 T180,6 T190,6 T200,6 T210,6 T220,6 T230,6 T240,6 T250,6 T260,6 T270,6 T280,6 T290,6 T300,6 T310,6 T320,6 T330,6 T340,6 T350,6 T360,6 T370,6 T380,6 T390,6 T400,6 T410,6 T420,6 T430,6 T440,6 T450,6 T460,6 T470,6 T480,6 T490,6 T500,6 T510,6 T520,6 T530,6 T540,6 T550,6 T560,6 T570,6 T580,6 T590,6 T600,6 T610,6 T620,6 T630,6 T640,6 T650,6 T660,6 T670,6 T680,6 T690,6 T700,6 T710,6 T720,6 T730,6 T740,6 T750,6 T760,6 T770,6 T780,6 T790,6 T800,6 T810,6 T820,6 T830,6 T840,6 T850,6 T860,6 T870,6 T880,6 T890,6 T900,6 T910,6 T920,6 T930,6 T940,6 T950,6 T960,6 T970,6 T980,6 T990,6 T1000,6 T1010,6 T1020,6 T1030,6 T1040,6 T1050,6 T1060,6 T1070,6 T1080,6 T1090,6 T1100,6 T1110,6 T1120,6 T1130,6 T1140,6 T1150,6 T1160,6 T1170,6 T1180,6 T1190,6 T1200,6" stroke="#000000" strokeWidth="1" fill="none" />
           </svg>
         </div>
 
@@ -490,8 +510,8 @@ export default function App() {
             {/* Card Display and Guess Input - Side by Side on Large Screens */}
             <div className="flex flex-col lg:flex-row gap-8 items-stretch">
               {/* Card Display */}
-              <div className="flex-shrink-0 w-full lg:w-auto flex justify-center">
-                <CardDisplay card={currentCard} revealed={revealed} />
+              <div className="flex-shrink-0 w-full lg:w-auto lg:self-start flex justify-center">
+                <CardDisplay card={currentCard} revealed={revealed} cardIndex={currentCardIndex} />
               </div>
 
               {/* Guess Input */}
@@ -575,10 +595,55 @@ export default function App() {
                     })}
                   </div>
                 </div>
+
+                {/* Ko-fi support button */}
+                <div className="mt-6 flex justify-center">
+                  <a
+                    href="https://ko-fi.com/bluesyblue"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2.5 px-6 py-3 rounded-full font-bold text-lg shadow-xl transition-transform hover:scale-105 active:scale-95"
+                    style={{ backgroundColor: '#fcbf47', color: '#323842' }}
+                  >
+                    <img
+                      src="https://storage.ko-fi.com/cdn/logomarkLogo.png"
+                      alt="Ko-fi"
+                      className="w-6 h-6 object-contain"
+                    />
+                    Buy Me a Support Booster
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
+                  </a>
+                </div>
+
               </div>
             </div>
           </div>
         </div>
+
+        {/* Disclaimer footer */}
+        <footer className="mt-auto w-full px-6 py-3 text-center">
+          <p className="text-xs text-gray-500 leading-relaxed max-w-2xl mx-auto">
+            This is an unofficial fan project and is not affiliated with, endorsed by, or sponsored by Wizards of the Coast. Magic: The Gathering, all card images, and art are property of Wizards of the Coast LLC. Used under the{' '}
+            <a
+              href="https://company.wizards.com/en/legal/fancontentpolicy"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-gray-300 transition-colors"
+            >
+              Fan Content Policy
+            </a>.
+            {' '}Card data and images provided by{' '}
+            <a
+              href="https://scryfall.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-gray-300 transition-colors"
+            >
+              Scryfall
+            </a>.
+            {' '}New cards every day at midnight UTC.
+          </p>
+        </footer>
       </div>
     </div>
   );

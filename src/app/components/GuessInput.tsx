@@ -58,40 +58,15 @@ export function GuessInput({
   // Helper function to determine field status
   const getFieldStatus = (guess: string, index: number) => {
     if (!revealed) return null;
-    
+
+    // Fields beyond the number of actual types are always neutral (yellow)
+    if (index >= actualTypes.length) return null;
+
     const trimmedGuess = guess.trim();
-    const actualTypesLower = actualTypes.map(t => t.toLowerCase());
-    
-    // If user entered something in this field
-    if (trimmedGuess) {
-      return actualTypesLower.includes(trimmedGuess.toLowerCase());
-    }
-    
-    // Field is empty - check if there are unguessed types
-    const userGuesses = guesses
-      .filter(g => g.trim())
-      .map(g => g.toLowerCase().trim());
-    
-    // Count how many actual types were NOT guessed
-    const missedTypesCount = actualTypes.filter(type => 
-      !userGuesses.includes(type.toLowerCase())
-    ).length;
-    
-    // If no types were missed, empty fields should be neutral
-    if (missedTypesCount === 0) {
-      return null;
-    }
-    
-    // Count how many empty fields come before this one
-    let emptyFieldsBeforeThis = 0;
-    for (let i = 0; i < index; i++) {
-      if (!guesses[i].trim()) {
-        emptyFieldsBeforeThis++;
-      }
-    }
-    
-    // Only show red for the first N empty fields, where N = number of missed types
-    return emptyFieldsBeforeThis < missedTypesCount ? false : null;
+    // Empty field within the required range = missed type = red
+    if (!trimmedGuess) return false;
+
+    return actualTypes.map(t => t.toLowerCase()).includes(trimmedGuess.toLowerCase());
   };
 
   const nextButtonRef = useRef<HTMLButtonElement>(null);
@@ -147,7 +122,7 @@ export function GuessInput({
             
             return (
               <div key={index} className="flex flex-col">
-                <label className="text-amber-900 mb-2 text-sm font-semibold">
+                <label htmlFor={`guess-${index}`} className="text-amber-900 mb-2 text-sm font-semibold">
                   Type {index + 1} {index === 0 && <span className="text-red-600">*</span>}
                 </label>
                 <div className="relative">
@@ -238,7 +213,7 @@ export function GuessInput({
                   : 'bg-gradient-to-b from-gray-600 via-gray-700 to-gray-800 text-gray-400 border-gray-900 cursor-not-allowed'
               }`}
             >
-              Submit Guess <ArrowRight className="size-5" />
+              Take a Guess <ArrowRight className="size-5" />
             </button>
           ) : (
             <button
