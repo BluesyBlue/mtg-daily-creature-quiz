@@ -646,6 +646,7 @@ export default function App() {
               Scryfall
             </a>.
             {' '}New cards every day at midnight UTC.
+            {' '}<span className="text-gray-600">#{__COMMIT_HASH__}</span>
           </p>
         </footer>
       </div>
