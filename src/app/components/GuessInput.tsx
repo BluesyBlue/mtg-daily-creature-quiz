@@ -1,5 +1,5 @@
 import { ArrowRight, Check, X } from 'lucide-react';
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 
 interface Card {
   id: string;
@@ -73,22 +73,22 @@ export function GuessInput({
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  // On touch devices, track a window after each card transition during which
-  // any browser-initiated auto-focus on inputs should be immediately cancelled.
-  // User-tap-initiated focus happens outside this window and works normally.
+  // On touch devices, keep inputs readOnly briefly after each card transition.
+  // readOnly prevents the keyboard from appearing even if the browser auto-focuses the input.
+  // User-initiated taps happen after the window expires and work normally.
   const isTouchDevice = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
-  const justTransitioned = useRef(isTouchDevice); // true on initial load for touch devices
+  const [inputBlocked, setInputBlocked] = useState(isTouchDevice);
 
-  const setTransitioned = () => {
+  const blockInputTemporarily = () => {
     if (!isTouchDevice) return;
-    justTransitioned.current = true;
-    setTimeout(() => { justTransitioned.current = false; }, 600);
+    setInputBlocked(true);
+    setTimeout(() => setInputBlocked(false), 700);
   };
 
-  // Reset justTransitioned flag on mount (handles initial page load)
+  // Unblock on initial mount
   useEffect(() => {
     if (isTouchDevice) {
-      const timer = setTimeout(() => { justTransitioned.current = false; }, 600);
+      const timer = setTimeout(() => setInputBlocked(false), 700);
       return () => clearTimeout(timer);
     }
   }, []);
@@ -105,7 +105,6 @@ export function GuessInput({
     if (!revealed && inputRefs.current[0] && !isTouchDevice) {
       inputRefs.current[0].focus();
     }
-    if (isTouchDevice) setTransitioned();
   }, [currentCardIndex, revealed]);
 
   return (
@@ -151,12 +150,7 @@ export function GuessInput({
                     id={`guess-${index}`}
                     type="text"
                     value={guess}
-                    onFocus={(e) => {
-                      // Block browser-initiated auto-focus on touch devices during transition window
-                      if (justTransitioned.current) {
-                        e.currentTarget.blur();
-                      }
-                    }}
+                    readOnly={inputBlocked}
                     onChange={(e) => setGuesses([...guesses.slice(0, index), e.target.value, ...guesses.slice(index + 1)])}
                     onKeyPress={(e) => {
                       if (e.key === 'Enter' && !revealed) {
@@ -233,7 +227,7 @@ export function GuessInput({
             <button
               onClick={() => {
                 onSubmit();
-                setTransitioned();
+                blockInputTemporarily();
                 if (window.innerWidth < 768) {
                   setTimeout(() => {
                     if (containerRef.current) {
@@ -256,11 +250,10 @@ export function GuessInput({
             <button
               ref={nextButtonRef}
               onClick={() => {
-                // Blur before unmounting to prevent Chrome redistributing focus to the first input
                 if (document.activeElement instanceof HTMLElement) {
                   document.activeElement.blur();
                 }
-                setTransitioned();
+                blockInputTemporarily();
                 onNext();
                 if (window.innerWidth < 768 && currentCardIndex < 9) {
                   setTimeout(() => {
