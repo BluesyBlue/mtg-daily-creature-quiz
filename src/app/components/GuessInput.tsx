@@ -86,7 +86,16 @@ export function GuessInput({
   // Focus the first input field when a new card is presented (desktop only — on touch devices the keyboard blocks the fields)
   useEffect(() => {
     const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    if (!revealed && inputRefs.current[0] && !isTouchDevice) {
+    if (isTouchDevice) {
+      // Actively undo any auto-focus Chrome may have applied at browser-level (after paint)
+      setTimeout(() => {
+        if (document.activeElement instanceof HTMLElement && document.activeElement !== document.body) {
+          document.activeElement.blur();
+        }
+      }, 0);
+      return;
+    }
+    if (!revealed && inputRefs.current[0]) {
       inputRefs.current[0].focus();
     }
   }, [currentCardIndex, revealed]);
