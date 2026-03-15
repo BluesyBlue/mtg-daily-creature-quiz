@@ -70,6 +70,7 @@ export function GuessInput({
   };
 
   const nextButtonRef = useRef<HTMLButtonElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Focus the Next Card button when answer is revealed
   useEffect(() => {
@@ -81,15 +82,15 @@ export function GuessInput({
   // Refs for input fields
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  // Focus the first input field when a new card is presented
+  // Focus the first input field when a new card is presented (desktop only — on mobile the keyboard blocks the fields)
   useEffect(() => {
-    if (!revealed && inputRefs.current[0]) {
+    if (!revealed && inputRefs.current[0] && window.innerWidth >= 768) {
       inputRefs.current[0].focus();
     }
   }, [currentCardIndex, revealed]);
 
   return (
-    <div className="bg-gradient-to-b from-amber-50 via-yellow-50 to-amber-100 p-8 rounded-lg shadow-2xl border-4 border-yellow-700 relative" style={{
+    <div ref={containerRef} className="bg-gradient-to-b from-amber-50 via-yellow-50 to-amber-100 p-8 rounded-lg shadow-2xl border-4 border-yellow-700 relative" style={{
       boxShadow: '0 0 0 2px #78350f, 0 0 0 6px #b45309, 0 0 0 8px #78350f, 0 10px 30px rgba(0,0,0,0.5)',
     }}>
       {/* Texture overlay */}
@@ -205,7 +206,14 @@ export function GuessInput({
           {/* Button - Right aligned */}
           {!revealed ? (
             <button
-              onClick={onSubmit}
+              onClick={() => {
+                onSubmit();
+                if (window.innerWidth < 768) {
+                  setTimeout(() => {
+                    containerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }, 80);
+                }
+              }}
               disabled={!guesses[0].trim()}
               className={`px-8 py-4 rounded-lg font-bold text-lg transition flex items-center gap-2 border-2 shadow-lg ${
                 guesses[0].trim()
@@ -218,7 +226,14 @@ export function GuessInput({
           ) : (
             <button
               ref={nextButtonRef}
-              onClick={onNext}
+              onClick={() => {
+                onNext();
+                if (window.innerWidth < 768 && currentCardIndex < 9) {
+                  setTimeout(() => {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }, 50);
+                }
+              }}
               className="bg-gradient-to-b from-purple-600 via-purple-700 to-purple-900 hover:from-purple-500 hover:via-purple-600 hover:to-purple-800 text-amber-100 px-8 py-4 rounded-lg font-bold text-lg transition flex items-center gap-2 border-2 border-purple-950 shadow-lg shadow-purple-900/50"
             >
               {currentCardIndex === 9 ? 'Show Results' : 'Next Card'} <ArrowRight className="size-5" />
