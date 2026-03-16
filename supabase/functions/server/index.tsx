@@ -15,6 +15,28 @@ interface Card {
 
 const app = new Hono();
 
+const defaultAllowedOrigins = [
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+  "http://localhost:4173",
+  "http://127.0.0.1:4173",
+];
+
+const allowedOrigins = new Set(
+  (Deno.env.get("ALLOWED_ORIGINS") ?? defaultAllowedOrigins.join(","))
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean),
+);
+
+const resolveCorsOrigin = (origin?: string) => {
+  if (!origin) {
+    return defaultAllowedOrigins[0];
+  }
+
+  return allowedOrigins.has(origin) ? origin : "";
+};
+
 // Enable logger
 app.use('*', logger(console.log));
 
@@ -22,9 +44,9 @@ app.use('*', logger(console.log));
 app.use(
   "/*",
   cors({
-    origin: "*",
+    origin: (origin) => resolveCorsOrigin(origin),
     allowHeaders: ["Content-Type", "Authorization"],
-    allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowMethods: ["GET", "OPTIONS"],
     exposeHeaders: ["Content-Length"],
     maxAge: 600,
   }),
@@ -105,7 +127,7 @@ app.get("/make-server-a4df6fde/daily-cards", async (c) => {
     return c.json({ cards, cached: false });
   } catch (error) {
     console.error('Error in /daily-cards endpoint:', error);
-    return c.json({ error: 'Failed to fetch daily cards', details: String(error) }, 500);
+    return c.json({ error: 'Failed to fetch daily cards' }, 500);
   }
 });
 
@@ -117,7 +139,7 @@ app.notFound((c) => {
 // Error handler
 app.onError((err, c) => {
   console.error('Server error:', err);
-  return c.json({ error: 'Internal Server Error', details: String(err) }, 500);
+  return c.json({ error: 'Internal Server Error' }, 500);
 });
 
 Deno.serve(app.fetch);

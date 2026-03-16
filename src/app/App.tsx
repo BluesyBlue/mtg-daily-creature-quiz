@@ -43,9 +43,8 @@ interface CardScore {
   guesses: string[];
 }
 
-// Supabase configuration
-const projectId = "lewwlvzooauwjpvbnnib";
-const publicAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxld3dsdnpvb2F1d2pwdmJubmliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2NzcyMzksImV4cCI6MjA4NTI1MzIzOX0.Z0BvuhNKYH-jn-m-bskI3z7o_mJZ0OkI8wG2BBdq28A";
+const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+const publicAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 export default function App() {
   const [cards, setCards] = useState<Card[]>([]);
@@ -87,6 +86,10 @@ export default function App() {
     try {
       setLoading(true);
       setError(null);
+
+      if (!projectId || !publicAnonKey) {
+        throw new Error('Missing Supabase client configuration. Set VITE_SUPABASE_PROJECT_ID and VITE_SUPABASE_ANON_KEY.');
+      }
       
       const response = await fetch(
         `https://${projectId}.supabase.co/functions/v1/make-server-a4df6fde/daily-cards`,
