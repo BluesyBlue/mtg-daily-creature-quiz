@@ -24,6 +24,7 @@ import bg18 from '@/assets/0841ec44d1663ce5a870b2bc2f40f5cb17b9adbb.png';
 import bg19 from '@/assets/a3f37faf1efbbd979fec80eb44d2c4c7938b110d.png';
 import bg20 from '@/assets/ebc64196c5142502ba031c49958eb2bcf0a0ae7e.png';
 import bg21 from '@/assets/7bc2d5122dbcba43fc1fc358f6112e114cf350e8.png';
+import kofiLogo from '@/assets/KofiLogo.webp';
 
 const RESULT_BACKGROUNDS = [backgroundImage, bg2, bg3, bg4, bg5, bg6, bg7, bg8, bg9, bg10, bg11, bg12, bg13, bg14, bg15, bg16, bg17, bg18, bg19, bg20, bg21];
 
@@ -387,7 +388,7 @@ export default function App() {
                   style={{ backgroundColor: '#fcbf47', color: '#323842' }}
                 >
                   <img
-                    src="https://storage.ko-fi.com/cdn/logomarkLogo.png"
+                    src={kofiLogo}
                     alt="Ko-fi"
                     className="w-6 h-6 object-contain"
                   />
@@ -613,7 +614,7 @@ export default function App() {
                     style={{ backgroundColor: '#fcbf47', color: '#323842' }}
                   >
                     <img
-                      src="https://storage.ko-fi.com/cdn/logomarkLogo.png"
+                      src={kofiLogo}
                       alt="Ko-fi"
                       className="w-6 h-6 object-contain"
                     />
