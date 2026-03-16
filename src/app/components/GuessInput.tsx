@@ -59,14 +59,16 @@ export function GuessInput({
   const getFieldStatus = (guess: string, index: number) => {
     if (!revealed) return null;
 
-    // Fields beyond the number of actual types are always neutral (yellow)
-    if (index >= actualTypes.length) return null;
-
     const trimmedGuess = guess.trim();
-    // Empty field within the required range = missed type = red
-    if (!trimmedGuess) return false;
 
-    return actualTypes.map(t => t.toLowerCase()).includes(trimmedGuess.toLowerCase());
+    // If there's a guess, check whether it's correct regardless of field index
+    if (trimmedGuess) {
+      return actualTypes.map(t => t.toLowerCase()).includes(trimmedGuess.toLowerCase());
+    }
+
+    // Empty field: red if within the required range, neutral (yellow) if beyond
+    if (index < actualTypes.length) return false;
+    return null;
   };
 
   const nextButtonRef = useRef<HTMLButtonElement>(null);
