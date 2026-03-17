@@ -78,6 +78,19 @@
   --sidebar-ring: oklch(0.439 0 0);
 }
 
+/* ─── MTG foil card shimmer animations ─── */
+@keyframes foil-holo {
+  0%   { background-position: 0% 0%; }
+  30%  { background-position: 100% 40%; }
+  70%  { background-position: 40% 100%; }
+  100% { background-position: 0% 0%; }
+}
+
+@keyframes foil-sweep {
+  0%   { transform: translateX(-160%) skewX(-12deg); }
+  100% { transform: translateX(160%) skewX(-12deg); }
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
