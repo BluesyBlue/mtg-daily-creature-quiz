@@ -75,6 +75,21 @@ export default function App() {
     }))
   );
 
+  const foilSparklesRef = useRef(
+    Array.from({ length: 14 }, (_, i) => ({
+      id: i,
+      x: Math.random() * 88 + 6,
+      y: Math.random() * 88 + 6,
+      size: Math.random() * 9 + 4,
+      delay: (i / 14) * 7,
+      duration: Math.random() * 1.8 + 2.2,
+      repeatDelay: Math.random() * 3 + 1.5,
+      rotation: Math.random() * 360,
+      drift: (Math.random() - 0.5) * 28,
+      rise: -(Math.random() * 38 + 16),
+    }))
+  );
+
   useEffect(() => {
     fetchCards();
   }, []);
@@ -323,8 +338,10 @@ export default function App() {
             >
               {/* Ornate results panel */}
               <div className="max-w-2xl w-full mb-8">
-                <div className="bg-gradient-to-b from-amber-50 via-yellow-50 to-amber-100 p-12 rounded-lg shadow-2xl border-4 border-yellow-700 relative" style={{
-                  boxShadow: '0 0 0 2px #78350f, 0 0 0 6px #b45309, 0 0 0 8px #78350f, 0 20px 60px rgba(0,0,0,0.8)',
+                <div className={`bg-gradient-to-b from-amber-50 via-yellow-50 to-amber-100 p-12 rounded-lg shadow-2xl border-4 relative ${score === totalPossible ? 'border-yellow-300' : 'border-yellow-700'}`} style={{
+                  boxShadow: score === totalPossible
+                    ? '0 0 0 2px #92400e, 0 0 0 6px #fbbf24, 0 0 20px 8px rgba(251,191,36,0.35), 0 20px 60px rgba(0,0,0,0.8)'
+                    : '0 0 0 2px #78350f, 0 0 0 6px #b45309, 0 0 0 8px #78350f, 0 20px 60px rgba(0,0,0,0.8)',
                 }}>
                   {/* Texture overlay */}
                   <div className="absolute inset-0 opacity-5 bg-[repeating-linear-gradient(0deg,transparent,transparent_2px,rgba(139,69,19,.8)_2px,rgba(139,69,19,.8)_4px)] rounded-lg pointer-events-none"></div>
@@ -375,6 +392,61 @@ export default function App() {
                       </button>
                     </div>
                   </div>
+
+                  {/* MTG foil shimmer overlay – only shown on perfect score */}
+                  {score === totalPossible && (
+                    <div
+                      className="absolute inset-0 rounded-lg overflow-hidden pointer-events-none select-none"
+                      style={{ zIndex: 30 }}
+                    >
+                      {/* Holographic rainbow base – slowly drifts */}
+                      <div style={{
+                        position: 'absolute',
+                        inset: 0,
+                        background: 'linear-gradient(115deg, rgba(120,0,255,0) 0%, rgba(120,0,255,0.18) 12%, rgba(0,100,255,0.18) 24%, rgba(0,210,255,0.18) 36%, rgba(0,255,140,0.18) 50%, rgba(200,255,0,0.18) 64%, rgba(255,140,0,0.18) 76%, rgba(255,0,100,0.18) 88%, rgba(120,0,255,0) 100%)',
+                        backgroundSize: '400% 400%',
+                        animation: 'foil-holo 12s ease-in-out infinite',
+                        mixBlendMode: 'screen',
+                      }} />
+                      {/* Diagonal sheen – gently crosses the card */}
+                      <div style={{
+                        position: 'absolute',
+                        top: '-100%',
+                        left: '-100%',
+                        width: '300%',
+                        height: '300%',
+                        background: 'linear-gradient(105deg, transparent 36%, rgba(255,255,255,0.13) 47%, rgba(200,230,255,0.08) 53%, transparent 64%)',
+                        animation: 'foil-sweep 9s ease-in-out infinite',
+                        mixBlendMode: 'screen',
+                      }} />
+                      {/* Floating sparkles – same star shape as the transition burst */}
+                      {foilSparklesRef.current.map((p) => (
+                        <motion.div
+                          key={p.id}
+                          className="absolute"
+                          style={{ left: `${p.x}%`, top: `${p.y}%` }}
+                          animate={{
+                            opacity: [0, 0.95, 0.95, 0],
+                            scale: [0, 1.15, 1, 0],
+                            rotate: [p.rotation, p.rotation + 180],
+                            x: [0, p.drift],
+                            y: [0, p.rise],
+                          }}
+                          transition={{
+                            duration: p.duration,
+                            delay: p.delay,
+                            ease: 'easeOut',
+                            repeat: Infinity,
+                            repeatDelay: p.repeatDelay,
+                          }}
+                        >
+                          <svg width={p.size} height={p.size} viewBox="0 0 24 24" fill="none">
+                            <path d="M12 2 L13.5 9.5 L21 11 L13.5 12.5 L12 20 L10.5 12.5 L3 11 L10.5 9.5 Z" fill="#fbbf24" opacity="0.9" />
+                          </svg>
+                        </motion.div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 
