@@ -7,3 +7,7 @@ Thumbs.db
 .env
 .env.*
 !.env.example
+
+# Supabase CLI binary and temp files
+supabase.exe
+supabase/.temp/
