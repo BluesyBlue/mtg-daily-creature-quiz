@@ -23,16 +23,18 @@ const app = new Hono();
 const defaultAllowedOrigins = [
   "http://localhost:5173",
   "http://127.0.0.1:5173",
+  "http://192.168.100.11:5173",
   "http://localhost:4173",
   "http://127.0.0.1:4173",
 ];
 
-const allowedOrigins = new Set(
-  (Deno.env.get("ALLOWED_ORIGINS") ?? defaultAllowedOrigins.join(","))
+const allowedOrigins = new Set([
+  ...defaultAllowedOrigins,
+  ...(Deno.env.get("ALLOWED_ORIGINS") ?? "")
     .split(",")
     .map((origin) => origin.trim())
     .filter(Boolean),
-);
+]);
 
 const resolveCorsOrigin = (origin?: string) => {
   if (!origin) {
