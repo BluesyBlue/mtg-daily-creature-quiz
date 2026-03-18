@@ -27,6 +27,7 @@ import bg19 from '@/assets/a3f37faf1efbbd979fec80eb44d2c4c7938b110d.png';
 import bg20 from '@/assets/ebc64196c5142502ba031c49958eb2bcf0a0ae7e.png';
 import bg21 from '@/assets/7bc2d5122dbcba43fc1fc358f6112e114cf350e8.png';
 import kofiLogo from '@/assets/KofiLogo.webp';
+import typeWizardLogo from '@/assets/TypeWizard-logo.svg';
 
 const RESULT_BACKGROUNDS = [backgroundImage, bg2, bg3, bg4, bg5, bg6, bg7, bg8, bg9, bg10, bg11, bg12, bg13, bg14, bg15, bg16, bg17, bg18, bg19, bg20, bg21];
 
@@ -59,7 +60,6 @@ export default function App() {
       ? (stored as SupportedLang)
       : 'en';
   });
-  // pendingLang: set when user picks a language mid-game to trigger confirmation dialog
   const [pendingLang, setPendingLang] = useState<SupportedLang | null>(null);
 
   // Persist language choice to localStorage (no cookie consent needed)
@@ -267,10 +267,23 @@ export default function App() {
       <div className="min-h-dvh w-full flex items-center justify-center bg-black relative overflow-hidden">
         <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-3/4 w-[800px] h-[800px] bg-white/15 rounded-full blur-3xl"></div>
         <div className="text-center relative z-10">
-          <img 
-            src={mtgLogo} 
-            alt="Loading" 
-            className="w-24 h-24 animate-spin mx-auto mb-4"
+          <motion.img
+            src={typeWizardLogo}
+            alt="Loading"
+            className="w-32 h-32 object-contain drop-shadow-lg mx-auto mb-6"
+            style={{ filter: 'invert(1)' }}
+            animate={{
+              y: [0, -22, -22, 0, 0],
+              rotate: [-2, 2, 2, -2, -2],
+              scaleY: [1, 1.04, 1.04, 0.96, 1],
+            }}
+            transition={{
+              duration: 0.75,
+              ease: 'easeInOut',
+              times: [0, 0.28, 0.42, 0.6, 1],
+              repeat: Infinity,
+              repeatDelay: 0.05,
+            }}
           />
           <p className="text-white text-xl">{t.loadingText}</p>
         </div>
@@ -613,15 +626,38 @@ export default function App() {
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-yellow-500/20 via-transparent to-transparent"></div>
           <div className="absolute inset-0 opacity-10 bg-[repeating-linear-gradient(45deg,transparent,transparent_2px,rgba(0,0,0,.3)_2px,rgba(0,0,0,.3)_4px)]\"></div>
           <div className="px-4 sm:px-8 relative z-10 pt-3 pb-6 md:pt-4 md:pb-8">
+            {/* Mobile-only: logo as background watermark behind content */}
+            <img
+              src={typeWizardLogo}
+              alt=""
+              aria-hidden="true"
+              className="sm:hidden absolute inset-0 h-full w-full object-contain object-left opacity-20 pointer-events-none"
+            />
             <div className="max-w-6xl mx-auto flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-              {/* Title wrapper — containerType scoped here so cqi = title's own width */}
-              <div className="flex-1 min-w-0" style={{ containerType: 'inline-size' }}>
-                <h1
-                  className="font-cinzel font-bold text-white text-center sm:text-left drop-shadow-lg leading-tight sm:whitespace-nowrap"
-                  style={{ fontSize: 'clamp(1.5rem, 4.5cqi, 4.48rem)', textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}
-                >
-                  {t.gameTitle}
-                </h1>
+              {/* Logo + Title group */}
+              <div className="flex-1 min-w-0 flex items-stretch gap-3 sm:gap-4">
+                {/* Desktop-only: logo inline */}
+                <img
+                  src={typeWizardLogo}
+                  alt=""
+                  aria-hidden="true"
+                  className="flex-shrink-0 hidden sm:block drop-shadow-lg h-auto w-auto sm:max-h-[4.5rem]"
+                />
+                {/* Title wrapper — containerType scoped here so cqi = title's own width */}
+                <div className="flex-1 min-w-0" style={{ containerType: 'inline-size' }}>
+                  <h1
+                    className="font-cinzel font-bold text-white text-center sm:text-left drop-shadow-lg leading-tight sm:whitespace-nowrap"
+                    style={{ fontSize: 'clamp(1.5rem, 4.5cqi, 4.48rem)', textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}
+                  >
+                    Type Wizard
+                  </h1>
+                  <p
+                    className="font-cinzel text-yellow-200 text-center sm:text-left drop-shadow leading-tight sm:whitespace-nowrap"
+                    style={{ fontSize: 'clamp(0.65rem, 1.6cqi, 1.3rem)', textShadow: '1px 1px 3px rgba(0,0,0,0.5)' }}
+                  >
+                    {t.gameSlogan}
+                  </p>
+                </div>
               </div>
               {/* Language selector */}
               <div className="flex-shrink-0 flex flex-col items-center sm:items-center gap-1 z-20">
