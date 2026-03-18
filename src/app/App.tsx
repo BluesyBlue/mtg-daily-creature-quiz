@@ -620,8 +620,14 @@ export default function App() {
                   className="font-cinzel font-bold text-white text-center sm:text-left drop-shadow-lg leading-tight sm:whitespace-nowrap"
                   style={{ fontSize: 'clamp(1.5rem, 4.5cqi, 4.48rem)', textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}
                 >
-                  {t.gameTitle}
+                  Type Wizard
                 </h1>
+                <p
+                  className="font-cinzel text-yellow-200 text-center sm:text-left drop-shadow leading-tight sm:whitespace-nowrap"
+                  style={{ fontSize: 'clamp(0.65rem, 1.6cqi, 1.3rem)', textShadow: '1px 1px 3px rgba(0,0,0,0.5)' }}
+                >
+                  {t.gameSlogan}
+                </p>
               </div>
               {/* Language selector */}
               <div className="flex-shrink-0 flex flex-col items-center sm:items-center gap-1 z-20">

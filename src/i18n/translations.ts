@@ -7,6 +7,7 @@ export interface Translations {
   tryAgain: string;
   // Header
   gameTitle: string;
+  gameSlogan: string;
   // Game view – progress bar
   cardProgress: string;
   totalScore: string;
@@ -50,6 +51,7 @@ const translations: Record<SupportedLang, Translations> = {
     errorTitle: 'Error Loading Cards',
     tryAgain: 'Try Again',
     gameTitle: 'Daily Creature Quiz',
+    gameSlogan: 'Daily Magic: The Gathering Creature Type Quiz',
     cardProgress: 'Card Progress',
     totalScore: 'Total Score',
     card: 'Card',
@@ -85,6 +87,7 @@ const translations: Record<SupportedLang, Translations> = {
     errorTitle: 'Error al Cargar las Cartas',
     tryAgain: 'Intentar de Nuevo',
     gameTitle: 'Quiz Diario de Criaturas',
+    gameSlogan: 'Quiz Diario de Tipo de Criatura de Magic: The Gathering',
     cardProgress: 'Progreso de Cartas',
     totalScore: 'Puntuación Total',
     card: 'Carta',
@@ -120,6 +123,7 @@ const translations: Record<SupportedLang, Translations> = {
     errorTitle: 'Erreur de Chargement des Cartes',
     tryAgain: 'Réessayer',
     gameTitle: 'Quiz Quotidien des Créatures',
+    gameSlogan: 'Quiz Quotidien de Type de Créature Magic: The Gathering',
     cardProgress: 'Progression des Cartes',
     totalScore: 'Score Total',
     card: 'Carte',
@@ -155,6 +159,7 @@ const translations: Record<SupportedLang, Translations> = {
     errorTitle: 'Fehler beim Laden der Karten',
     tryAgain: 'Erneut versuchen',
     gameTitle: 'Tägliches Kreatur-Quiz',
+    gameSlogan: 'Tägliches Magic: The Gathering Kreaturtyp-Quiz',
     cardProgress: 'Kartenfortschritt',
     totalScore: 'Gesamtpunktzahl',
     card: 'Karte',
@@ -190,6 +195,7 @@ const translations: Record<SupportedLang, Translations> = {
     errorTitle: 'Errore nel Caricamento delle Carte',
     tryAgain: 'Riprova',
     gameTitle: 'Quiz Giornaliero delle Creature',
+    gameSlogan: 'Quiz Giornaliero di Tipo di Creatura di Magic: The Gathering',
     cardProgress: 'Progressi delle Carte',
     totalScore: 'Punteggio Totale',
     card: 'Carta',
