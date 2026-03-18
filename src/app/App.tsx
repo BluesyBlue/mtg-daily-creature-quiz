@@ -59,7 +59,6 @@ export default function App() {
       ? (stored as SupportedLang)
       : 'en';
   });
-  // pendingLang: set when user picks a language mid-game to trigger confirmation dialog
   const [pendingLang, setPendingLang] = useState<SupportedLang | null>(null);
 
   // Persist language choice to localStorage (no cookie consent needed)
