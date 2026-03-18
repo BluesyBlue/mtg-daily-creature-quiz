@@ -1,5 +1,6 @@
 import { ArrowRight, Check, X } from 'lucide-react';
 import { useRef, useEffect, useState } from 'react';
+import type { Translations } from '@/i18n/translations';
 
 interface Card {
   id: string;
@@ -8,6 +9,7 @@ interface Card {
     normal: string;
   };
   type_line: string;
+  display_type_line?: string;
 }
 
 interface GuessInputProps {
@@ -20,6 +22,7 @@ interface GuessInputProps {
   extractCreatureTypes: (typeLine: string) => string[];
   currentCardIndex: number;
   score: number;
+  t: Translations;
 }
 
 export function GuessInput({
@@ -32,8 +35,10 @@ export function GuessInput({
   extractCreatureTypes,
   currentCardIndex,
   score,
+  t,
 }: GuessInputProps) {
-  const actualTypes = extractCreatureTypes(currentCard.type_line);
+  const activeTypeLine = currentCard.display_type_line ?? currentCard.type_line;
+  const actualTypes = extractCreatureTypes(activeTypeLine);
 
   // Calculate points for current card when revealed
   const calculateCurrentCardPoints = () => {
@@ -131,10 +136,10 @@ export function GuessInput({
       
       <div className="relative z-10">
         <h2 className="text-2xl font-bold text-amber-950 mb-2">
-          Guess the Creature Type(s)
+          {t.guessTitle}
         </h2>
         <p className="text-black mb-4">
-          Enter at least 1 creature type. Typically creature has 1-3 types.
+          {t.guessHint}
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
@@ -144,7 +149,7 @@ export function GuessInput({
             return (
               <div key={index} className="flex flex-col">
                 <label htmlFor={`guess-${index}`} className="text-amber-900 mb-2 text-sm font-semibold">
-                  Type {index + 1} {index === 0 && <span className="text-red-600">*</span>}
+                  {t.typeLabel} {index + 1} {index === 0 && <span className="text-red-600">*</span>}
                 </label>
                 <div className="relative">
                   <input
@@ -166,7 +171,7 @@ export function GuessInput({
                       }
                     }}
                     disabled={revealed}
-                    placeholder={index === 0 ? "Required" : "Optional"}
+                    placeholder={index === 0 ? t.required : t.optional}
                     className={`w-full px-4 py-3 rounded-lg font-semibold text-lg transition ${
                       revealed
                         ? correct === true
@@ -197,7 +202,7 @@ export function GuessInput({
           {revealed && (
             <div className="bg-gradient-to-b from-yellow-600 via-yellow-700 to-yellow-800 p-4 rounded-lg border-2 border-yellow-900">
               <p className="text-amber-100 mb-2">
-                <span className="font-bold">Correct Answer:</span>
+                <span className="font-bold">{t.correctAnswer}:</span>
               </p>
               <div className="flex flex-wrap gap-2">
                 {actualTypes.map((type, index) => (
@@ -218,7 +223,7 @@ export function GuessInput({
           {revealed && (
             <div className="flex gap-4">
               <div className="bg-gradient-to-b from-amber-50 via-yellow-50 to-amber-100 px-6 py-4 rounded-lg">
-                <span className="text-amber-800 text-lg">Scored points:</span>{' '}
+                <span className="text-amber-800 text-lg">{t.scoredPoints}:</span>{' '}
                 <span className="font-bold text-amber-950 text-lg">{calculateCurrentCardPoints()}</span>
               </div>
             </div>
@@ -246,7 +251,7 @@ export function GuessInput({
                   : 'bg-gradient-to-b from-gray-600 via-gray-700 to-gray-800 text-gray-400 border-gray-900 cursor-not-allowed'
               }`}
             >
-              Take a Guess <ArrowRight className="size-5" />
+              {t.takeAGuess} <ArrowRight className="size-5" />
             </button>
           ) : (
             <button
@@ -265,7 +270,7 @@ export function GuessInput({
               }}
               className="bg-gradient-to-b from-purple-600 via-purple-700 to-purple-900 hover:from-purple-500 hover:via-purple-600 hover:to-purple-800 text-amber-100 px-8 py-4 rounded-lg font-bold text-lg transition flex items-center gap-2 border-2 border-purple-950 shadow-lg shadow-purple-900/50"
             >
-              {currentCardIndex === 9 ? 'Show Results' : 'Next Card'} <ArrowRight className="size-5" />
+              {currentCardIndex === 9 ? t.showResults : t.nextCard} <ArrowRight className="size-5" />
             </button>
           )}
         </div>
