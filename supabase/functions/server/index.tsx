@@ -4,6 +4,9 @@ import { cors } from "npm:hono/cors";
 import { logger } from "npm:hono/logger";
 import * as kv from "./kv_store.tsx";
 
+type SupportedLang = 'en' | 'es' | 'fr' | 'de' | 'it';
+const SUPPORTED_LANGS: SupportedLang[] = ['en', 'es', 'fr', 'de', 'it'];
+
 interface Card {
   id: string;
   name: string;
@@ -11,6 +14,8 @@ interface Card {
     normal: string;
   };
   type_line: string;
+  /** Localized type line used for answer validation and display. Equals type_line for English. */
+  display_type_line: string;
 }
 
 const app = new Hono();
@@ -60,9 +65,20 @@ app.get("/make-server-a4df6fde/health", (c) => {
 // Get daily cards endpoint
 app.get("/make-server-a4df6fde/daily-cards", async (c) => {
   try {
+    // Validate language param – default to 'en' for backward compatibility
+    const rawLang = c.req.query('lang') ?? 'en';
+    const lang: SupportedLang = SUPPORTED_LANGS.includes(rawLang as SupportedLang)
+      ? (rawLang as SupportedLang)
+      : 'en';
+
     // Get current date in YYYY-MM-DD format (UTC)
     const now = new Date();
-    const dateKey = `daily-cards-${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}-${String(now.getUTCDate()).padStart(2, '0')}`;
+    const dateStr = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}-${String(now.getUTCDate()).padStart(2, '0')}`;
+
+    // Keep the legacy key format for English to avoid cache busting existing entries
+    const dateKey = lang === 'en'
+      ? `daily-cards-${dateStr}`
+      : `daily-cards-${dateStr}-${lang}`;
     
     console.log(`Checking for daily cards with key: ${dateKey}`);
     
@@ -74,17 +90,24 @@ app.get("/make-server-a4df6fde/daily-cards", async (c) => {
       return c.json({ cards: existingCards, cached: true });
     }
     
-    console.log(`No existing cards found. Fetching new cards from Scryfall...`);
+    console.log(`No existing cards found. Fetching new cards from Scryfall (lang=${lang})...`);
     
     // Fetch 10 random creature cards from Scryfall
     const cards: Card[] = [];
     let attempts = 0;
-    const maxAttempts = 50; // Safety limit
+    const maxAttempts = 60; // Safety limit (higher for non-English, fewer available cards)
     
+    // For non-English we filter to cards that actually have a printing in that language
+    const scryfallQuery = lang === 'en'
+      ? 'type:creature'
+      : `type:creature+lang:${lang}`;
+
     while (cards.length < 10 && attempts < maxAttempts) {
       attempts++;
       try {
-        const response = await fetch('https://api.scryfall.com/cards/random?q=type:creature');
+        const response = await fetch(
+          `https://api.scryfall.com/cards/random?q=${scryfallQuery}&lang=${lang}`
+        );
         
         if (!response.ok) {
           console.error(`Scryfall API error: ${response.status} ${response.statusText}`);
@@ -94,18 +117,40 @@ app.get("/make-server-a4df6fde/daily-cards", async (c) => {
         
         const data = await response.json();
         
-        // Ensure the card has image_uris and is a creature
-        if (data.image_uris && data.type_line && data.type_line.includes('Creature')) {
-          cards.push({
-            id: data.id,
-            name: data.name,
-            image_uris: {
-              normal: data.image_uris.normal
-            },
-            type_line: data.type_line
-          });
-          console.log(`Fetched card ${cards.length}/10: ${data.name}`);
+        // Must have card art at the top level (filters out DFCs / split cards)
+        if (!data.image_uris || !data.type_line || !data.type_line.includes('Creature')) {
+          continue;
         }
+
+        // Skip cards with no real scan (Scryfall placeholder = "Localized Image Not Available")
+        if (data.image_status === 'missing' || data.image_status === 'placeholder') {
+          continue;
+        }
+
+        // Determine the localized type line to use for answer validation
+        let displayTypeLine: string;
+        if (lang === 'en') {
+          displayTypeLine = data.type_line;
+        } else {
+          // For non-English: require printed_type_line that contains a subtype separator
+          if (!data.printed_type_line) continue;
+          const parts = data.printed_type_line.split('—');
+          if (parts.length < 2) continue;
+          const subtypes = parts[1].trim().split(' ').filter((t: string) => t && t !== '//' && t !== 'et' && t !== 'y' && t !== 'und' && t !== 'e');
+          if (subtypes.length === 0) continue;
+          displayTypeLine = data.printed_type_line;
+        }
+
+        cards.push({
+          id: data.id,
+          name: data.name,
+          image_uris: {
+            normal: data.image_uris.normal
+          },
+          type_line: data.type_line,
+          display_type_line: displayTypeLine,
+        });
+        console.log(`Fetched card ${cards.length}/10: ${data.name}`);
         
         // Small delay to respect API rate limits
         await new Promise(resolve => setTimeout(resolve, 100));

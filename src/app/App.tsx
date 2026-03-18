@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { CardDisplay } from '@/app/components/CardDisplay';
 import { GuessInput } from '@/app/components/GuessInput';
+import { LanguageSelector } from '@/app/components/LanguageSelector';
+import translations, { type SupportedLang } from '@/i18n/translations';
 import mtgLogo from '@/assets/7ff308a699b32bb3b895a6ef5d6e0be72a0eb43a.png';
 import backgroundImage from '@/assets/98979b0f5e399b241bb8df95439e5b5fc2870918.png';
 import bg2 from '@/assets/18032718c486d507b9c6e42e027d45d06b91a4d4.png';
@@ -35,6 +37,8 @@ interface Card {
     normal: string;
   };
   type_line: string;
+  /** Localized type line for answer validation/display. Falls back to type_line for cached English cards. */
+  display_type_line?: string;
 }
 
 interface CardScore {
@@ -48,6 +52,25 @@ const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
 const publicAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 export default function App() {
+  // ── Language state (persisted in localStorage — no cookies needed) ──
+  const [lang, setLang] = useState<SupportedLang>(() => {
+    const stored = localStorage.getItem('lang');
+    return (stored === 'en' || stored === 'es' || stored === 'fr' || stored === 'de' || stored === 'it')
+      ? (stored as SupportedLang)
+      : 'en';
+  });
+  // pendingLang: set when user picks a language mid-game to trigger confirmation dialog
+  const [pendingLang, setPendingLang] = useState<SupportedLang | null>(null);
+
+  // Persist language choice to localStorage (no cookie consent needed)
+  useEffect(() => {
+    localStorage.setItem('lang', lang);
+  }, [lang]);
+
+  const t = translations[lang];
+
+  // Returns the type line to use for answer validation and display
+  const getDisplayTypeLine = (card: Card) => card.display_type_line ?? card.type_line;
   const [cards, setCards] = useState<Card[]>([]);
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -98,7 +121,7 @@ export default function App() {
     window.scrollTo(0, 0);
   }, []);
 
-  const fetchCards = async () => {
+  const fetchCards = async (language: SupportedLang = lang) => {
     try {
       setLoading(true);
       setError(null);
@@ -108,7 +131,7 @@ export default function App() {
       }
       
       const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-a4df6fde/daily-cards`,
+        `https://${projectId}.supabase.co/functions/v1/make-server-a4df6fde/daily-cards?lang=${language}`,
         {
           headers: {
             'Authorization': `Bearer ${publicAnonKey}`
@@ -138,10 +161,10 @@ export default function App() {
     const parts = typeLine.split('—');
     if (parts.length < 2) return [];
     
-    const types = parts[1].trim().split(' ').map(t => t.trim());
+    const types = parts[1].trim().split(' ').map(t => t.trim().replace(/,/g, ''));
     
-    // Filter out invalid types: "//", "Instant", and "Sorcery"
-    const invalidTypes = ['//', 'instant', 'sorcery'];
+    // Filter out invalid types: "//", "Instant", "Sorcery", and conjunctions used between subtypes in other languages
+    const invalidTypes = ['//', 'instant', 'sorcery', 'et', 'y', 'und', 'e'];
     const filteredTypes = types.filter(t => 
       t && !invalidTypes.includes(t.toLowerCase())
     );
@@ -151,12 +174,12 @@ export default function App() {
 
   const handleSubmit = () => {
     if (!guesses[0].trim()) {
-      alert('Please fill in at least the first creature type!');
+      alert(t.fillFirstType);
       return;
     }
 
     const currentCard = cards[currentCardIndex];
-    const actualTypes = extractCreatureTypes(currentCard.type_line).map(t => t.toLowerCase());
+    const actualTypes = extractCreatureTypes(getDisplayTypeLine(currentCard)).map(t => t.toLowerCase());
     
     // Get unique user guesses only (prevent duplicate entries for exploitation)
     const userGuesses = guesses
@@ -197,7 +220,7 @@ export default function App() {
     }
   };
 
-  const handleReset = () => {
+  const handleReset = (resetLang: SupportedLang = lang) => {
     setCurrentCardIndex(0);
     setGuesses(['', '', '', '']);
     setRevealed(false);
@@ -207,7 +230,24 @@ export default function App() {
     setResultBgIndex(0);
     setShowArtOnly(false);
     setIsTransitioning(false);
-    fetchCards();
+    fetchCards(resetLang);
+  };
+
+  const handleLanguageSelect = (newLang: SupportedLang) => {
+    const gameInProgress = cardScores.length > 0 || revealed;
+    if (gameInProgress) {
+      setPendingLang(newLang);
+    } else {
+      setLang(newLang);
+      handleReset(newLang);
+    }
+  };
+
+  const confirmLanguageSwitch = () => {
+    if (!pendingLang) return;
+    setLang(pendingLang);
+    handleReset(pendingLang);
+    setPendingLang(null);
   };
 
   const handleShowArt = () => {
@@ -232,7 +272,7 @@ export default function App() {
             alt="Loading" 
             className="w-24 h-24 animate-spin mx-auto mb-4"
           />
-          <p className="text-white text-xl">Rounding up the creatures...</p>
+          <p className="text-white text-xl">{t.loadingText}</p>
         </div>
       </div>
     );
@@ -243,13 +283,13 @@ export default function App() {
       <div className="min-h-dvh w-full flex items-center justify-center bg-black relative overflow-hidden">
         <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-3/4 w-[800px] h-[800px] bg-white/15 rounded-full blur-3xl"></div>
         <div className="text-center bg-slate-800 p-8 rounded-lg shadow-2xl max-w-md relative z-10">
-          <h1 className="text-2xl font-bold text-red-400 mb-4">Error Loading Cards</h1>
+          <h1 className="text-2xl font-bold text-red-400 mb-4">{t.errorTitle}</h1>
           <p className="text-slate-300 mb-6">{error}</p>
           <button
-            onClick={fetchCards}
+            onClick={() => fetchCards()}
             className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold transition"
           >
-            Try Again
+            {t.tryAgain}
           </button>
         </div>
       </div>
@@ -259,7 +299,7 @@ export default function App() {
   if (gameComplete) {
     // Calculate total possible creature types across all cards
     const totalPossible = cards.reduce((total, card) => {
-      return total + extractCreatureTypes(card.type_line).length;
+      return total + extractCreatureTypes(getDisplayTypeLine(card)).length;
     }, 0);
 
     return (
@@ -321,7 +361,7 @@ export default function App() {
               exit={{ opacity: 0, x: 24, y: -24 }}
               transition={{ type: 'spring', stiffness: 280, damping: 22, delay: 0.15 }}
             >
-              Results
+              {t.results}
             </motion.button>
           )}
         </AnimatePresence>
@@ -361,12 +401,12 @@ export default function App() {
                   
                   <div className="relative z-10 text-center">
                     <h1 className="text-5xl font-bold text-amber-950 mb-6" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.1)' }}>
-                      Quest Complete!
+                      {t.questComplete}
                     </h1>
                     
                     <div className="bg-gradient-to-b from-yellow-600 via-yellow-700 to-yellow-800 p-6 rounded-lg border-2 border-yellow-900 mb-6">
                       <p className="text-3xl text-amber-100 mb-2">
-                        <span className="font-bold">Final Score:</span>
+                        <span className="font-bold">{t.finalScore}:</span>
                       </p>
                       <p className="text-5xl font-bold text-white">
                         {score} / {totalPossible}
@@ -374,21 +414,21 @@ export default function App() {
                     </div>
                     
                     <p className="text-xl text-amber-900 mb-8 leading-relaxed">
-                      Come back tomorrow to guess new set of 10 creatures.
+                      {t.comeTomorrow}
                     </p>
                     
                     <div className="flex flex-col items-center gap-3 mt-2">
                       <button
-                        onClick={handleReset}
+                        onClick={() => handleReset()}
                         className="bg-gradient-to-b from-purple-600 via-purple-700 to-purple-900 hover:from-purple-500 hover:via-purple-600 hover:to-purple-800 text-amber-100 px-12 py-5 rounded-lg font-bold text-2xl transition border-2 border-purple-950 shadow-lg shadow-purple-900/50"
                       >
-                        Try again!
+                        {t.tryAgainBtn}
                       </button>
                       <button
                         onClick={handleShowArt}
                         className="text-amber-800 hover:text-amber-950 text-sm underline underline-offset-2 transition"
                       >
-                        No, show me the cool art!
+                        {t.showArt}
                       </button>
                     </div>
                   </div>
@@ -464,7 +504,7 @@ export default function App() {
                     alt="Ko-fi"
                     className="w-6 h-6 object-contain"
                   />
-                  Buy Me a Support Booster
+                  {t.buySupport}
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
                 </a>
               </div>
@@ -485,12 +525,12 @@ export default function App() {
                 
                 <div className="relative z-10">
                   <h2 className="text-4xl font-bold text-amber-950 mb-6 text-center" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.1)' }}>
-                    Record of Your Knowledge
+                    {t.recordOfKnowledge}
                   </h2>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {cardScores.map((cardScore, idx) => {
-                      const actualTypes = extractCreatureTypes(cardScore.card.type_line);
+                      const actualTypes = extractCreatureTypes(getDisplayTypeLine(cardScore.card));
                       const actualTypesLower = actualTypes.map(t => t.toLowerCase());
                       
                       return (
@@ -504,12 +544,12 @@ export default function App() {
                             <div className="flex-1 min-w-0 w-full">
                               <h3 className="font-bold text-amber-950 text-2xl mb-2">{cardScore.card.name}</h3>
                               <div className="text-lg text-amber-800 mb-4">
-                                Points: <span className="font-bold">{cardScore.points} / {actualTypes.length}</span>
+                                {t.points}: <span className="font-bold">{cardScore.points} / {actualTypes.length}</span>
                               </div>
                               
                               <div className="space-y-3">
                                 <div>
-                                  <p className="text-lg font-semibold text-amber-900 mb-2">Your Guesses:</p>
+                                  <p className="text-lg font-semibold text-amber-900 mb-2">{t.yourGuesses}:</p>
                                   <div className="flex flex-wrap gap-1">
                                     {cardScore.guesses.length > 0 ? (
                                       cardScore.guesses.map((guess, i) => {
@@ -528,13 +568,13 @@ export default function App() {
                                         );
                                       })
                                     ) : (
-                                      <span className="text-amber-700 italic text-base">No guesses</span>
+                                      <span className="text-amber-700 italic text-base">{t.noGuesses}</span>
                                     )}
                                   </div>
                                 </div>
                                 
                                 <div>
-                                  <p className="text-lg font-semibold text-amber-900 mb-2">Correct Answer:</p>
+                                  <p className="text-lg font-semibold text-amber-900 mb-2">{t.correctAnswer}:</p>
                                   <div className="flex flex-wrap gap-1">
                                     {actualTypes.map((type, i) => (
                                       <span
@@ -569,13 +609,28 @@ export default function App() {
       <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-[800px] h-[800px] bg-white/15 rounded-full blur-3xl pointer-events-none"></div>
       <div className="min-h-dvh flex flex-col relative z-10">
         {/* Header - Full Width Panel */}
-        <div className="w-full bg-gradient-to-b from-yellow-600 via-yellow-700 to-yellow-800 shadow-2xl relative flex-shrink-0">
+        <div className="w-full bg-gradient-to-b from-yellow-600 via-yellow-700 to-yellow-800 shadow-2xl relative flex-shrink-0 z-50">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-yellow-500/20 via-transparent to-transparent"></div>
           <div className="absolute inset-0 opacity-10 bg-[repeating-linear-gradient(45deg,transparent,transparent_2px,rgba(0,0,0,.3)_2px,rgba(0,0,0,.3)_4px)]\"></div>
-          <div className="max-w-6xl mx-auto px-8 relative z-10 pt-3 pb-6 md:pt-4 md:pb-8">
-            <h1 className="font-cinzel text-3xl md:text-[4.48rem] font-bold text-white text-center drop-shadow-lg leading-tight" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}>
-              Daily Creature Quiz
-            </h1>
+          <div className="px-4 sm:px-8 relative z-10 pt-3 pb-6 md:pt-4 md:pb-8">
+            <div className="max-w-6xl mx-auto flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+              {/* Title wrapper — containerType scoped here so cqi = title's own width */}
+              <div className="flex-1 min-w-0" style={{ containerType: 'inline-size' }}>
+                <h1
+                  className="font-cinzel font-bold text-white text-center sm:text-left drop-shadow-lg leading-tight sm:whitespace-nowrap"
+                  style={{ fontSize: 'clamp(1.5rem, 4.5cqi, 4.48rem)', textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}
+                >
+                  {t.gameTitle}
+                </h1>
+              </div>
+              {/* Language selector */}
+              <div className="flex-shrink-0 flex flex-col items-center sm:items-center gap-1 z-20">
+                <span className="text-yellow-200 text-xs font-semibold tracking-wide uppercase whitespace-nowrap drop-shadow hidden sm:block">
+                  Play in your language!
+                </span>
+                <LanguageSelector currentLang={lang} onSelect={handleLanguageSelect} />
+              </div>
+            </div>
           </div>
           {/* Wavy bottom border */}
           <svg className="absolute bottom-0 left-0 w-full h-4" preserveAspectRatio="none" viewBox="0 0 1200 12" xmlns="http://www.w3.org/2000/svg">
@@ -606,6 +661,7 @@ export default function App() {
                   extractCreatureTypes={extractCreatureTypes}
                   currentCardIndex={currentCardIndex}
                   score={score}
+                  t={t}
                 />
                 
                 {/* Card Progress Section */}
@@ -614,14 +670,14 @@ export default function App() {
                   <div className="absolute inset-0 opacity-5 bg-[repeating-linear-gradient(45deg,transparent,transparent_2px,rgba(255,255,255,.1)_2px,rgba(255,255,255,.1)_4px)]"></div>
                   
                   <div className="flex items-center justify-between mb-4 relative z-10">
-                    <h3 className="text-lg font-semibold text-amber-200">Card Progress</h3>
+                    <h3 className="text-lg font-semibold text-amber-200">{t.cardProgress}</h3>
                     <div className="flex items-center gap-4">
                       <div className="text-amber-200 text-lg">
-                        <span>Total Score:</span>{' '}
+                        <span>{t.totalScore}:</span>{' '}
                         <span className="font-bold">{score}</span>
                       </div>
                       <div className="text-amber-200 text-lg">
-                        <span>Card:</span>{' '}
+                        <span>{t.card}:</span>{' '}
                         <span className="font-bold">{currentCardIndex + 1} / 10</span>
                       </div>
                     </div>
@@ -690,7 +746,7 @@ export default function App() {
                       alt="Ko-fi"
                       className="w-6 h-6 object-contain"
                     />
-                    Buy Me a Support Booster
+                    {t.buySupport}
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
                   </a>
                 </div>
@@ -726,6 +782,51 @@ export default function App() {
           </p>
         </footer>
       </div>
+
+      {/* Language switch confirmation dialog */}
+      <AnimatePresence>
+        {pendingLang && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18 }}
+          >
+            {/* Backdrop */}
+            <div
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+              onClick={() => setPendingLang(null)}
+            />
+            {/* Dialog */}
+            <motion.div
+              className="relative bg-gradient-to-b from-amber-50 via-yellow-50 to-amber-100 rounded-xl shadow-2xl border-4 border-yellow-700 p-8 max-w-sm w-full text-center"
+              style={{ boxShadow: '0 0 0 2px #78350f, 0 0 0 6px #b45309, 0 0 0 8px #78350f, 0 20px 40px rgba(0,0,0,0.8)' }}
+              initial={{ scale: 0.88, opacity: 0, y: 16 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.88, opacity: 0, y: 16 }}
+              transition={{ type: 'spring', stiffness: 320, damping: 24 }}
+            >
+              <p className="text-2xl font-bold text-amber-950 mb-3">{t.switchLanguage}</p>
+              <p className="text-amber-800 mb-6">{t.switchLanguageConfirm}</p>
+              <div className="flex gap-3 justify-center">
+                <button
+                  onClick={() => setPendingLang(null)}
+                  className="px-6 py-2.5 rounded-lg font-semibold border-2 border-amber-700 text-amber-900 hover:bg-amber-200 transition"
+                >
+                  {t.cancel}
+                </button>
+                <button
+                  onClick={confirmLanguageSwitch}
+                  className="px-6 py-2.5 rounded-lg font-bold bg-gradient-to-b from-purple-600 via-purple-700 to-purple-900 text-amber-100 border-2 border-purple-950 hover:from-purple-500 hover:via-purple-600 hover:to-purple-800 transition"
+                >
+                  {t.yesSwitch}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
