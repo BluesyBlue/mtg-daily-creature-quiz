@@ -1,6 +1,6 @@
 {
-  "name": "Daily Creature Quiz",
-  "short_name": "Creature Quiz",
+  "name": "Type Wizard",
+  "short_name": "Type Wizard",
   "icons": [
     {
       "src": "/web-app-manifest-192x192.png",
