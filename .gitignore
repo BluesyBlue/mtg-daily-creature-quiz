@@ -11,3 +11,6 @@ Thumbs.db
 # Supabase CLI binary and temp files
 supabase.exe
 supabase/.temp/
+
+# Project guidelines (AI agent context — local only)
+GUIDELINES.md
