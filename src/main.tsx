@@ -3,7 +3,7 @@ import { inject } from "@vercel/analytics";
 import App from "./app/App.tsx";
 import "./styles/index.css";
 
-inject();
+inject({ debug: false });
 
 // Always start at the top of the page on load/refresh
 history.scrollRestoration = 'manual';
