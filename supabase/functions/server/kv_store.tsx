@@ -11,10 +11,31 @@ CREATE TABLE kv_store_a4df6fde (
 // This file provides a simple key-value interface for storing cached data. It should be adequate for most small-scale use cases.
 import { createClient } from "jsr:@supabase/supabase-js@2.49.8";
 
-const client = () => createClient(
-  Deno.env.get("SUPABASE_URL"),
-  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"),
-);
+const client = () => {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const secretKeysValue = Deno.env.get("SUPABASE_SECRET_KEYS");
+
+  if (!supabaseUrl) {
+    throw new Error("Missing SUPABASE_URL environment variable.");
+  }
+  if (!secretKeysValue) {
+    throw new Error("Missing SUPABASE_SECRET_KEYS environment variable.");
+  }
+
+  let secretKeys: Record<string, string>;
+  try {
+    secretKeys = JSON.parse(secretKeysValue);
+  } catch {
+    throw new Error("SUPABASE_SECRET_KEYS must contain a valid JSON object.");
+  }
+
+  const secretKey = secretKeys.default;
+  if (!secretKey) {
+    throw new Error('SUPABASE_SECRET_KEYS must contain a "default" key.');
+  }
+
+  return createClient(supabaseUrl, secretKey);
+};
 
 // Set stores a key-value pair in the database.
 export const set = async (key: string, value: any): Promise<void> => {

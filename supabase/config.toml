@@ -1,0 +1,6 @@
+project_id = "qzkbejchylsdkkevazkb"
+
+[functions.make-server-a4df6fde]
+enabled = true
+verify_jwt = true
+entrypoint = "functions/server/index.tsx"
