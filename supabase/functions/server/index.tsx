@@ -52,7 +52,7 @@ app.use(
   "/*",
   cors({
     origin: (origin) => resolveCorsOrigin(origin),
-    allowHeaders: ["Content-Type", "Authorization"],
+    allowHeaders: ["Content-Type", "Authorization", "apikey"],
     allowMethods: ["GET", "OPTIONS"],
     exposeHeaders: ["Content-Length"],
     maxAge: 600,

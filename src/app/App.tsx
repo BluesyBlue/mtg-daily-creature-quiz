@@ -50,7 +50,7 @@ interface CardScore {
 }
 
 const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-const publicAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const publishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 export default function App() {
   // ── Language state (persisted in localStorage — no cookies needed) ──
@@ -126,15 +126,15 @@ export default function App() {
       setLoading(true);
       setError(null);
 
-      if (!projectId || !publicAnonKey) {
-        throw new Error('Missing Supabase client configuration. Set VITE_SUPABASE_PROJECT_ID and VITE_SUPABASE_ANON_KEY.');
+      if (!projectId || !publishableKey) {
+        throw new Error('Missing Supabase client configuration. Set VITE_SUPABASE_PROJECT_ID and VITE_SUPABASE_PUBLISHABLE_KEY.');
       }
       
       const response = await fetch(
         `https://${projectId}.supabase.co/functions/v1/make-server-a4df6fde/daily-cards?lang=${language}`,
         {
           headers: {
-            'Authorization': `Bearer ${publicAnonKey}`
+            'apikey': publishableKey
           }
         }
       );
